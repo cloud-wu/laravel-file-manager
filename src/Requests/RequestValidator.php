@@ -48,6 +48,15 @@ class RequestValidator extends FormRequest
                 function ($attribute, $value, $fail) {
                     if ($value && !Storage::disk($this->input('disk'))->exists($value)
                     ) {
+                        preg_match("/(?P<path>.+)\/(?P<file>.+)/i", "$value", $matches);
+                        $path = $matches['path'] ?? '';
+                        $file = $matches['file'] ?? $value;
+
+                        $directories = $this->fm->content($this->input('disk'), $path)['directories'];
+                        if (in_array($file, array_column($directories, 'basename'))) {
+                            return;
+                        }
+
                         return $fail('pathNotFound');
                     }
                 },
